@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Products</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="max-w-6xl mx-auto py-10 px-4">
+
+    <h1 class="text-3xl font-bold text-gray-800 text-center mb-6">
+      Product Catalog
+    </h1>
+
+    <!-- ✅ Search Bar -->
+    <div class="flex justify-center mb-8">
+      <input 
+        id="search"
+        type="text" 
+        placeholder="Search product..."
+        class="w-full md:w-1/2 px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+      />
+    </div>
+
+    <!-- Product Grid -->
+    <div id="product-grid" 
+         class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+    </div>
+
+    <!-- ✅ PAGINATION -->
+    <div id="pagination" class="flex justify-center mt-10 gap-2"></div>
+
+  </div>
+
+<script>
+  let allProducts = [];
+  let filteredProducts = [];
+  let currentPage = 1;
+  const itemsPerPage = 8;
+
+  // ✅ Render product cards
+  function renderProducts(list) {
+    const grid = document.getElementById("product-grid");
+    grid.innerHTML = "";
+
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageItems = list.slice(start, end);
+
+    pageItems.forEach(p => {
+
+      // ✅ Pastikan media selalu array
+      let mediaArray = [];
+
+      if (typeof p.media === "string") {
+        try {
+          mediaArray = JSON.parse(p.media);
+        } catch {
+          mediaArray = [];
+        }
+      } else if (Array.isArray(p.media)) {
+        mediaArray = p.media;
+      }
+
+      // ✅ Ambil gambar pertama
+      const firstImage = mediaArray.find(m => m.type === "image")?.url;
+
+      // ✅ Fallback
+      const imageUrl =
+        firstImage ||
+        p.image ||
+        "https://via.placeholder.com/300?text=No+Image";
+
+      const card = `
+        <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl hover:-translate-y-1 transition p-3">
+          <img 
+            src="${imageUrl}" 
+            alt="${p.name}" 
+            class="w-full h-48 object-cover rounded-lg"
+          />
+          <div class="mt-4">
+            <h2 class="text-lg font-semibold text-gray-800">${p.name}</h2>
+            <p class="text-sm text-gray-500 mt-1">${p.category}</p>
+            <p class="text-blue-600 font-bold mt-3">
+              Rp ${Number(p.price).toLocaleString()}
+            </p>
+          </div>
+        </div>
+      `;
+
+      grid.innerHTML += card;
+    });
+
+    // ✅ Pagination selalu di-render setelah card selesai
+    renderPagination(list);
+  }
+
+  // ✅ Render pagination angka
+  function renderPagination(list) {
+    const totalPages = Math.ceil(list.length / itemsPerPage);
+    const pagination = document.getElementById("pagination");
+    pagination.innerHTML = "";
+
+    for (let i = 1; i <= totalPages; i++) {
+      pagination.innerHTML += `
+        <button 
+          onclick="goToPage(${i})"
+          class="px-4 py-2 rounded-lg border ${
+            i === currentPage 
+            ? 'bg-blue-600 text-white border-blue-600' 
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-200'
+          }"
+        >
+          ${i}
+        </button>
+      `;
+    }
+  }
+
+  // ✅ Ganti halaman
+  function goToPage(page) {
+    currentPage = page;
+    renderProducts(filteredProducts);
+  }
+
+  // ✅ Fetch backend
+  async function loadProducts() {
+    try {
+      const res = await fetch("http://localhost:3000/products");
+      const products = await res.json();
+
+      allProducts = products;
+      filteredProducts = products;
+
+      renderProducts(products);
+
+    } catch (error) {
+      console.error("Error fetch product:", error);
+    }
+  }
+
+  // ✅ Search logic
+  document.getElementById("search").addEventListener("input", function(e) {
+    const keyword = e.target.value.toLowerCase();
+    currentPage = 1;
+
+    filteredProducts = allProducts.filter(p =>
+      p.name.toLowerCase().includes(keyword) ||
+      p.category.toLowerCase().includes(keyword)
+    );
+
+    renderProducts(filteredProducts);
+  });
+
+  loadProducts();
+</script>
+
+
+</body>
+</html>

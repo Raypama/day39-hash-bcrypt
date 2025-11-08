@@ -1,0 +1,21 @@
+{
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "pg": "^8.16.3"
+  },
+  "name": "day37-express-postgresql",
+  "version": "1.0.0",
+  "main": "src/server.js",
+  "author": "Rai Restu Pama",
+  "license": "ISC",
+  "description": ""
+}
