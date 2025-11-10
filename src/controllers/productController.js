@@ -1,5 +1,6 @@
 const pool = require("../config/db");
 
+
 module.exports = {
   getAll: async (req, res) => {
     try {
@@ -45,7 +46,7 @@ module.exports = {
       // ✅ Wajib isi
       if (!name || !category || !brand || !price || !stock) {
         return res.status(400).json({
-          error: "name, category, brand, price, dan stock wajib diisi",
+          error: "Name, category, brand, price, and stock must be filled in",
         });
       }
 
@@ -55,10 +56,10 @@ module.exports = {
 
       // ✅ Price & stock harus angka
       if (isNaN(price)) {
-        return res.status(400).json({ error: "price harus angka" });
+        return res.status(400).json({ error: "price must be a number" });
       }
       if (isNaN(stock)) {
-        return res.status(400).json({ error: "stock harus angka" });
+        return res.status(400).json({ error: "stock must be a number" });
       }
 
       // ✅ Media harus array → JSON
@@ -116,7 +117,7 @@ module.exports = {
       // ✅ Validasi wajib isi
       if (!name || !category || !brand || !price || !stock) {
         return res.status(400).json({
-          error: "name, category, brand, price, dan stock wajib diisi",
+          error: "Name, category, brand, price, and stock must be filled in",
         });
       }
 
@@ -126,10 +127,10 @@ module.exports = {
 
       // ✅ Validasi angka
       if (isNaN(price)) {
-        return res.status(400).json({ error: "price harus angka" });
+        return res.status(400).json({ error: "price must be a number" });
       }
       if (isNaN(stock)) {
-        return res.status(400).json({ error: "stock harus angka" });
+        return res.status(400).json({ error: "stock must be a number" });
       }
 
       // ✅ FIX MEDIA (menerima array atau string JSON)

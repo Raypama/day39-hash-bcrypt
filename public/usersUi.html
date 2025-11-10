@@ -7,13 +7,15 @@
 </head>
 <body class="bg-gray-100">
 
+  <!-- ✅ NAVBAR -->
+  <div id="navbar"></div>
+
   <div class="max-w-6xl mx-auto py-10 px-4">
 
     <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
       Users Table
     </h1>
 
-    <!-- TABLE -->
     <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
       <table class="min-w-full text-left text-gray-700">
         <thead>
@@ -32,17 +34,19 @@
       </table>
     </div>
 
-    <!-- PAGINATION -->
     <div id="pagination" class="flex justify-center mt-6 gap-2"></div>
 
   </div>
 
+  <!-- ✅ FOOTER -->
+  <div id="footer"></div>
+
+
 <script>
   let allUsers = [];
   let currentPage = 1;
-  const rowsPerPage = 30;  // ✅ per halaman 30 data
+  const rowsPerPage = 30;
 
-  // ✅ Render Table Rows
   function renderTable() {
     const tbody = document.getElementById("user-table");
     tbody.innerHTML = "";
@@ -75,7 +79,6 @@
     renderPagination();
   }
 
-  // ✅ Render Pagination Numbers
   function renderPagination() {
     const totalPages = Math.ceil(allUsers.length / rowsPerPage);
     const pagination = document.getElementById("pagination");
@@ -102,7 +105,6 @@
     renderTable();
   }
 
-  // ✅ Fetch Users
   async function loadUsers() {
     try {
       const res = await fetch("http://localhost:3000/users");
@@ -117,6 +119,25 @@
   }
 
   loadUsers();
+
+  
+</script>
+
+<!-- ✅ LOAD NAVBAR + FOOTER -->
+<script>
+  async function loadPartial(id, file) {
+    const res = await fetch(file);
+    const html = await res.text();
+    document.getElementById(id).innerHTML = html;
+  }
+
+  loadPartial("navbar", "/partials/navbar.html").then(() => {
+  const s = document.createElement("script");
+  s.src = "/js/navbar.js";
+  document.body.appendChild(s);
+});
+
+  loadPartial("footer", "/partials/footer.html");
 </script>
 
 </body>
