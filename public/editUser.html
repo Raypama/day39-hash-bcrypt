@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit User</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-gray-100">
+    <div id="navbar"></div>
+
+    <div class="min-h-screen w-full flex px-6 justify-center items-center">
+      <div class="mx-auto w-full bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4 text-center">Edit User</h1>
+
+        <form id="editForm" class="flex gap-2 w-full">
+          <div class="w-1/2">
+            <div>
+              <label>Full Name</label>
+              <input id="full_name" class="border p-2 w-full" required />
+            </div>
+
+            <div>
+              <label>Nickname</label>
+              <input id="nickname" class="border p-2 w-full" required />
+            </div>
+
+            <div>
+              <label>Email</label>
+              <input
+                id="email"
+                type="email"
+                class="border p-2 w-full"
+                required
+              />
+            </div>
+
+            <div>
+              <label>Phone</label>
+              <input id="phone" class="border p-2 w-full" required />
+            </div>
+            <div>
+              <label>Address</label>
+              <input id="address" class="border p-2 w-full" required />
+            </div>
+          </div>
+
+          <div class="w-1/2 ">
+            <div>
+              <label>Image URL</label>
+              <input id="image" class="border p-2 w-full" required />
+            </div>
+
+            <div>
+              <label>Birthday</label>
+              <input
+                id="birthday"
+                type="date"
+                class="border p-2 w-full"
+                required
+              />
+            </div>
+
+            <!-- PASSWORD OPTIONAL -->
+            <div class="relative">
+              <label>New Password (optional)</label>
+              <input
+                id="password"
+                type="password"
+                class="border p-2 w-full pr-10"
+                placeholder="Leave blank if not replaced"
+              />
+
+              <button
+                type="button"
+                id="togglePass"
+                class="absolute right-2 top-9 text-sm text-gray-500"
+              >
+                Show
+              </button>
+
+              <p id="passwordStrength" class="text-sm mt-1"></p>
+            </div>
+
+            <div class="relative">
+              <label>Confirm Password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                class="border p-2 w-full pr-10"
+                placeholder="Match if the password content"
+              />
+
+              <button
+                type="button"
+                id="toggleConfirm"
+                class="absolute right-2 top-9 text-sm text-gray-500"
+              >
+                Show
+              </button>
+
+              <p id="confirmMsg" class="text-sm mt-1"></p>
+            </div>
+
+            <p id="msg" class="text-red-600"></p>
+
+            <div class="w-full flex justify-center items-center">
+              <button
+                class="mt-2 bg-yellow-500 text-white w-1/2 px-4 py-2 rounded-lg"
+              >
+                Update
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="footer" class="mt-10"></div>
+
+    <!-- Load Navbar & Footer -->
+    <script>
+      async function loadPartial(id, file) {
+        const res = await fetch(file);
+        const html = await res.text();
+        document.getElementById(id).innerHTML = html;
+      }
+
+      loadPartial("navbar", "/partials/navbar.html");
+      loadPartial("footer", "/partials/footer.html");
+    </script>
+
+    <!-- ==============================
+        EDIT USER SCRIPT
+    =============================== -->
+    <script>
+      const API = "http://localhost:3000";
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const userId = urlParams.get("id");
+
+      const msg = document.getElementById("msg");
+
+      const password = document.getElementById("password");
+      const confirmPassword = document.getElementById("confirmPassword");
+      const passwordStrength = document.getElementById("passwordStrength");
+      const confirmMsg = document.getElementById("confirmMsg");
+
+      // 🔥 Regex password
+      const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+
+      // ============================
+      // 1️⃣ LOAD USER DETAILS
+      // ============================
+      async function loadUser() {
+        try {
+          const res = await fetch(`${API}/users/${userId}`);
+          const user = await res.json();
+
+          document.getElementById("full_name").value = user.full_name;
+          document.getElementById("nickname").value = user.nickname;
+          document.getElementById("email").value = user.email;
+          document.getElementById("phone").value = user.phone;
+          document.getElementById("address").value = user.address ?? "";
+          document.getElementById("image").value = user.image ?? "";
+
+          // 🔥 FIX BIRTHDAY
+          document.getElementById("birthday").value = user.birthday
+            ? new Date(user.birthday).toISOString().split("T")[0]
+            : "";
+        } catch (err) {
+          console.error("Load user error:", err);
+        }
+      }
+
+      loadUser();
+
+      // ============================
+      // 2️⃣ Password Strength
+      // ============================
+      password.addEventListener("input", () => {
+        const val = password.value;
+
+        if (val === "") {
+          passwordStrength.textContent = "";
+          return;
+        }
+
+        if (PASSWORD_REGEX.test(val)) {
+          passwordStrength.textContent = "✔ Password kuat";
+          passwordStrength.className = "text-green-600 text-sm";
+        } else {
+          passwordStrength.textContent =
+            "Password must contain uppercase letters, lowercase letters, numbers, symbols & min 8 characters";
+          passwordStrength.className = "text-red-600 text-sm";
+        }
+      });
+
+      confirmPassword.addEventListener("input", () => {
+        if (confirmPassword.value === password.value) {
+          confirmMsg.textContent = "✔ Cocok";
+          confirmMsg.className = "text-green-600 text-sm";
+        } else {
+          confirmMsg.textContent = "Password tidak sama";
+          confirmMsg.className = "text-red-600 text-sm";
+        }
+      });
+
+      // ============================
+      // 3️⃣ Show/Hide Password
+      // ============================
+      document.getElementById("togglePass").onclick = () => {
+        password.type = password.type === "password" ? "text" : "password";
+      };
+
+      document.getElementById("toggleConfirm").onclick = () => {
+        confirmPassword.type =
+          confirmPassword.type === "password" ? "text" : "password";
+      };
+
+      // ============================
+      // 4️⃣ SUBMIT UPDATE
+      // ============================
+      document
+        .getElementById("editForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          // Kalau user isi password → cek kuat
+          if (password.value !== "" && !PASSWORD_REGEX.test(password.value)) {
+            msg.textContent = "Password does not meet security requirements!!";
+            return;
+          }
+
+          // Cek confirm
+          if (password.value !== confirmPassword.value) {
+            msg.textContent = "Password and Confirm do not match!!";
+            return;
+          }
+
+          const body = {
+            full_name: document.getElementById("full_name").value,
+            nickname: document.getElementById("nickname").value,
+            email: document.getElementById("email").value,
+            phone: document.getElementById("phone").value,
+            address: document.getElementById("address").value,
+            image: document.getElementById("image").value,
+            birthday: document.getElementById("birthday").value,
+            password: password.value, // opsional (kalau kosong → backend pakai password lama)
+          };
+
+          try {
+            const res = await fetch(`${API}/users/${userId}`, {
+              method: "PUT",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(body),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              msg.textContent = data.error || "Update failed";
+              return;
+            }
+
+            msg.classList.remove("text-red-600");
+            msg.classList.add("text-green-600");
+            msg.textContent = "✔ Update berhasil! Redirecting...";
+
+            setTimeout(() => {
+              window.location.href = "/usersUi.html";
+            }, 1200);
+          } catch (error) {
+            console.error("Update error:", error);
+            msg.textContent = "Server error!";
+          }
+        });
+    </script>
+  </body>
+</html>

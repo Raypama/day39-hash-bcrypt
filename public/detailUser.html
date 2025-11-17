@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>User Details</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+
+  <div class="max-w-xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
+    <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">User Details</h1>
+
+    <div id="user-details" class="space-y-4 text-gray-700">
+      <p>Loading...</p>
+    </div>
+
+    <div class="flex justify-between mt-6">
+      <button 
+        onclick="history.back()" 
+        class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+        Back
+      </button>
+
+      <button 
+        id="edit-btn"
+        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Edit User
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // Ambil ID dari URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const userId = urlParams.get("id");
+
+    async function loadUserDetails() {
+      try {
+        const res = await fetch(`http://localhost:3000/users/${userId}`);
+        const user = await res.json();
+
+        const container = document.getElementById("user-details");
+
+        container.innerHTML = `
+          <div class="flex justify-center mb-4">
+            <img src="${user.image ? user.image : 'https://source.unsplash.com/100x100/?profile'}"
+                 class="w-24 h-24 rounded-xl object-cover border"
+                 onerror="this.src='https://source.unsplash.com/100x100/?profile';" />
+          </div>
+
+          <p><strong>Full Name:</strong> ${user.full_name}</p>
+          <p><strong>Nickname:</strong> ${user.nickname}</p>
+          <p><strong>Email:</strong> ${user.email}</p>
+          <p><strong>Phone:</strong> ${user.phone}</p>
+          <p><strong>Address:</strong> ${user.address}</p>
+          <p><strong>Birthday:</strong> ${user.birthday ? new Date(user.birthday).toLocaleDateString() : "-"}</p>
+        `;
+
+        // Edit button
+        document.getElementById("edit-btn").onclick = () => {
+          window.location.href = `/editUser.html?id=${userId}`;
+        };
+
+      } catch (err) {
+        console.error(err);
+        document.getElementById("user-details").innerHTML =
+          "<p class='text-red-600'>Failed to load user data.</p>";
+      }
+    }
+
+    loadUserDetails();
+  </script>
+
+</body>
+</html>

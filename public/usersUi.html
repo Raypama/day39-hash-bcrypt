@@ -9,13 +9,13 @@
     <!-- ✅ NAVBAR -->
     <div id="navbar"></div>
 
-    <div class="max-w-6xl mx-auto py-10 px-4">
+    <div class="w-full mx-auto py-10 px-10">
       <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
         Users Table
       </h1>
 
-      <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
-        <table class="min-w-full text-left text-gray-700">
+      <div class="w-full overflow-hidden bg-white shadow rounded-xl p-4">
+        <table class="w-full text-left text-gray-700">
           <thead>
             <tr class="border-b">
               <th class="p-3">Image</th>
@@ -25,6 +25,7 @@
               <th class="p-3">Phone</th>
               <th class="p-3">Address</th>
               <th class="p-3">Birthday</th>
+              <th class="p-3">Actions</th>
             </tr>
           </thead>
 
@@ -54,24 +55,46 @@
 
         pageItems.forEach((u) => {
           const row = `
-        <tr class="border-b hover:bg-gray-50">
-          <td class="p-3">
-           <img
-  src="${u.image ? u.image : "https://source.unsplash.com/100x100/?profile"}"
-  class="w-12 h-12 rounded-lg object-cover"
-  onerror="this.onerror=null; this.src='https://source.unsplash.com/100x100/?profile';"
-/>
-          </td>
-          <td class="p-3 font-semibold">${u.full_name}</td>
-          <td class="p-3">${u.nickname}</td>
-          <td class="p-3">${u.email}</td>
-          <td class="p-3">${u.phone}</td>
-          <td class="p-3">${u.address}</td>
-          <td class="p-3">${
-            u.birthday ? new Date(u.birthday).toLocaleDateString() : ""
-          }</td>
-        </tr>
-      `;
+      <tr class="border-b hover:bg-gray-50">
+        <td class="p-3">
+          <img
+            src="${
+              u.image ? u.image : "https://source.unsplash.com/100x100/?profile"
+            }"
+            class="w-12 h-12 rounded-lg object-cover"
+            onerror="this.onerror=null; this.src='https://source.unsplash.com/100x100/?profile';"
+          />
+        </td>
+        <td class="p-3 font-semibold">${u.full_name}</td>
+        <td class="p-3">${u.nickname}</td>
+        <td class="p-3">${u.email}</td>
+        <td class="p-3">${u.phone}</td>
+        <td class="p-3">${u.address ?? ""}</td>
+        <td class="p-3">${
+          u.birthday ? new Date(u.birthday).toLocaleDateString() : ""
+        }</td>
+
+        <td class="p-3 flex gap-2">
+          <button 
+            onclick="viewUser(${u.id})"
+            class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">
+            Detail
+          </button>
+
+          <button 
+            onclick="editUser(${u.id})"
+            class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600">
+            Edit
+          </button>
+
+          <button 
+            onclick="deleteUser(${u.id})"
+            class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
           tbody.innerHTML += row;
         });
 
@@ -117,6 +140,41 @@
       }
 
       loadUsers();
+    </script>
+
+    <script>
+      // ➤ 1. Detail user
+      function viewUser(id) {
+        window.location.href = `/detailUser.html?id=${id}`;
+      }
+
+      // ➤ 2. Edit user
+      function editUser(id) {
+        window.location.href = `/editUser.html?id=${id}`;
+      }
+
+      // ➤ 3. Delete user
+      async function deleteUser(id) {
+        const confirmDelete = confirm("Are you sure you want to delete this user??");
+        if (!confirmDelete) return;
+
+        try {
+          const res = await fetch(`http://localhost:3000/users/${id}`, {
+            method: "DELETE",
+          });
+
+          if (!res.ok) {
+            alert("Failed to delete user.");
+            return;
+          }
+
+          alert("User successfully deleted!");
+          loadUsers(); // refresh table setelah delete
+        } catch (err) {
+          console.error(err);
+          alert("An error occurred while deleting!!");
+        }
+      }
     </script>
 
     <!-- ✅ LOAD NAVBAR + FOOTER -->
