@@ -47,14 +47,14 @@ module.exports = {
   create: async (req, res) => {
     try {
       const {
-        full_name,
-        nickname,
-        email,
-        phone,
-        address,
-        image,
-        birthday,
-        password,
+        full_name = "",
+        nickname = "",
+        email = "",
+        phone = "",
+        address = "",
+        image = "",
+        birthday = "",
+        password = "",
       } = req.body;
 
       if (!full_name || !nickname || !email || !phone || !password) {
@@ -65,6 +65,8 @@ module.exports = {
 
       const addressValue = address?.trim() === "" ? null : address;
       const imageValue = image?.trim() === "" ? null : image;
+      const birthdayValue = !birthday || birthday.trim() === "" ? null : birthday;
+
 
       const checkEmail = await pool.query(
         "SELECT id FROM users WHERE email = $1",

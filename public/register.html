@@ -1,140 +1,225 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Register</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
 
-<body class="bg-gray-100">
+  <body class="bg-gray-100">
+    <div id="navbar"></div>
+    <div class="min-h-screen flex justify-center items-center">
+      <div class="max-w-md mx-auto h-fit bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4 text-center">Register</h1>
 
-  <div id="navbar"></div>
+        <form id="registerForm" class="space-y-4">
+          <div>
+            <label>Full Name</label>
+            <input id="full_name" class="border p-2 w-full" required />
+          </div>
 
-  <div class="max-w-md mx-auto mt-10 bg-white p-6 rounded-lg shadow">
-    <h1 class="text-2xl font-bold mb-4 text-center">Register</h1>
+          <div>
+            <label>Email</label>
+            <input id="email" type="email" class="border p-2 w-full" required />
+          </div>
 
-    <form id="registerForm" class="space-y-4">
+          <div>
+            <label>Phone</label>
+            <input id="phone" class="border p-2 w-full" required />
+          </div>
 
-      <div>
-        <label class="font-medium">Full Name</label>
-        <input id="full_name" type="text" class="w-full border px-3 py-2 rounded" required>
+          <!-- PASSWORD -->
+          <div class="relative">
+            <label>Password</label>
+            <input
+              id="password"
+              type="password"
+              class="border p-2 w-full pr-10"
+              required
+            />
+
+            <!-- Show Password Button -->
+            <button
+              type="button"
+              id="togglePass"
+              class="absolute right-2 top-9 text-sm text-gray-500"
+            >
+              Show
+            </button>
+
+            <!-- Strength Indicator -->
+            <p id="passwordStrength" class="text-sm mt-1"></p>
+          </div>
+
+          <!-- CONFIRM PASSWORD -->
+          <div class="relative">
+            <label>Confirm Password</label>
+            <input
+              id="confirmPassword"
+              type="password"
+              class="border p-2 w-full pr-10"
+              required
+            />
+
+            <!-- Show Password Button -->
+            <button
+              type="button"
+              id="toggleConfirm"
+              class="absolute right-2 top-9 text-sm text-gray-500"
+            >
+              Show
+            </button>
+
+            <p id="confirmMsg" class="text-sm mt-1"></p>
+          </div>
+
+          <p id="msg" class="text-red-600"></p>
+
+          <div class="w-full flex justify-center items-center">
+            <button class="mt-2 bg-blue-600 text-white w-1/2 px-4 py-2 rounded-lg">
+              Register
+            </button>
+          </div>
+        </form>
       </div>
+    </div>
 
-      <div>
-        <label class="font-medium">Nickname</label>
-        <input id="nickname" type="text" class="w-full border px-3 py-2 rounded" required>
-      </div>
+    <div id="footer" class="mt-10"></div>
 
-      <div>
-        <label class="font-medium">Email</label>
-        <input id="email" type="email" class="w-full border px-3 py-2 rounded" required>
-      </div>
+    <!-- ✅ Load Navbar & Footer -->
+    <script>
+      async function loadPartial(id, file) {
+        const res = await fetch(file);
+        const html = await res.text();
+        document.getElementById(id).innerHTML = html;
+      }
 
-      <div>
-        <label class="font-medium">Phone</label>
-        <input id="phone" type="text" class="w-full border px-3 py-2 rounded" required>
-      </div>
+      loadPartial("navbar", "/partials/navbar.html");
+      loadPartial("footer", "/partials/footer.html");
+    </script>
 
-      <div>
-        <label class="font-medium">Address (optional)</label>
-        <input id="address" type="text" class="w-full border px-3 py-2 rounded">
-      </div>
+    <!-- ✅ Register Logic -->
+    <script>
+      const API = "http://localhost:3000";
 
-      <div>
-        <label class="font-medium">Image URL (optional)</label>
-        <input id="image" type="text" class="w-full border px-3 py-2 rounded">
-      </div>
+      const form = document.getElementById("registerForm");
+      const msg = document.getElementById("msg");
 
-      <div>
-        <label class="font-medium">Birthday (YYYY-MM-DD)</label>
-        <input id="birthday" type="date" class="w-full border px-3 py-2 rounded">
-      </div>
+      const password = document.getElementById("password");
+      const confirmPassword = document.getElementById("confirmPassword");
+      const passwordStrength = document.getElementById("passwordStrength");
+      const confirmMsg = document.getElementById("confirmMsg");
 
-      <div>
-        <label class="font-medium">Password</label>
-        <input id="password" type="password" class="w-full border px-3 py-2 rounded" required>
-      </div>
+      // ============================
+      // 🔥 PASSWORD REGEX
+      // Harus ada:
+      // huruf kecil, huruf besar, angka, simbol, min 8 karakter
+      // ============================
+      const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
 
-      <button type="submit"
-        class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold">
-        Register
-      </button>
+      // ============================
+      // 🔥 Password Strength Checker
+      // ============================
+      password.addEventListener("input", () => {
+        const val = password.value;
 
-      <p class="text-center text-sm mt-2">
-        Sudah punya akun?
-        <a href="/login.html" class="text-blue-600 font-medium hover:underline">Login</a>
-      </p>
+        if (PASSWORD_REGEX.test(val)) {
+          passwordStrength.textContent = "✔ Passwordmu kuat";
+          passwordStrength.className = "text-green-600 text-sm";
+        } else {
+          passwordStrength.textContent =
+            "Password harus memiliki huruf besar, huruf kecil, angka, simbol & min 8 karakter";
+          passwordStrength.className = "text-red-600 text-sm";
+        }
+      });
 
-      <p id="msg" class="text-center mt-3 text-red-600 font-medium"></p>
+      // ============================
+      // 🔥 Confirm Password Checker
+      // ============================
+      confirmPassword.addEventListener("input", () => {
+        if (confirmPassword.value === password.value) {
+          confirmMsg.textContent = "✔ Cocok";
+          confirmMsg.className = "text-green-600 text-sm";
+        } else {
+          confirmMsg.textContent = "Password tidak sama";
+          confirmMsg.className = "text-red-600 text-sm";
+        }
+      });
 
-    </form>
-  </div>
+      // ============================
+      // 🔥 Show/Hide Password
+      // ============================
+      const togglePass = document.getElementById("togglePass");
+      togglePass.addEventListener("click", () => {
+        password.type = password.type === "password" ? "text" : "password";
+        togglePass.textContent = password.type === "password" ? "Show" : "Hide";
+      });
 
-  <div id="footer" class="mt-10"></div>
+      const toggleConfirm = document.getElementById("toggleConfirm");
+      toggleConfirm.addEventListener("click", () => {
+        confirmPassword.type =
+          confirmPassword.type === "password" ? "text" : "password";
+        toggleConfirm.textContent =
+          confirmPassword.type === "password" ? "Show" : "Hide";
+      });
 
-  <!-- ✅ Load Navbar & Footer -->
-  <script>
-    async function loadPartial(id, file) {
-      const res = await fetch(file);
-      const html = await res.text();
-      document.getElementById(id).innerHTML = html;
-    }
+      // ============================
+      // 🔥 Handle Register Submit
+      // ============================
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    loadPartial("navbar", "/partials/navbar.html");
-    loadPartial("footer", "/partials/footer.html");
-  </script>
-
-  <!-- ✅ Register Logic -->
-  <script>
-    const API = "http://localhost:3000";
-
-    const form = document.getElementById("registerForm");
-    const msg = document.getElementById("msg");
-
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const body = {
-        full_name: document.getElementById("full_name").value,
-        nickname: document.getElementById("nickname").value,
-        email: document.getElementById("email").value,
-        phone: document.getElementById("phone").value,
-        address: document.getElementById("address").value,
-        image: document.getElementById("image").value,
-        birthday: document.getElementById("birthday").value,
-        password: document.getElementById("password").value
-      };
-
-      try {
-        const res = await fetch(`${API}/users`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
-        });
-
-        const data = await res.json();
-
-        if (!res.ok) {
-          msg.textContent = data.error || "Registration failed";
+        // 1. Pastikan password kuat
+        if (!PASSWORD_REGEX.test(password.value)) {
+          msg.textContent = "Password tidak memenuhi syarat keamanan!";
           return;
         }
 
-        msg.classList.remove("text-red-600");
-        msg.classList.add("text-green-600");
-        msg.textContent = "✅ Registration successful! Redirecting...";
+        // 2. Pastikan confirm match
+        if (password.value !== confirmPassword.value) {
+          msg.textContent = "Password dan Confirm Password tidak cocok!";
+          return;
+        }
 
-        setTimeout(() => {
-          window.location.href = "/login.html";
-        }, 1200);
+        // 3. Buat body, field lain auto jadi kosong
+        const body = {
+          full_name: document.getElementById("full_name").value,
+          email: document.getElementById("email").value,
+          phone: document.getElementById("phone").value,
+          password: password.value,
+          nickname: document.getElementById("full_name").value,
+          address: "",
+          birthday: null,
+          image: "",
+        };
 
-      } catch (err) {
-        msg.textContent = "Server error. Try again.";
-        console.error(err);
-      }
-    });
-  </script>
+        try {
+          const res = await fetch(`${API}/users`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
 
-</body>
+          const data = await res.json();
 
+          if (!res.ok) {
+            msg.textContent = data.error || "Registration failed";
+            return;
+          }
+
+          msg.classList.remove("text-red-600");
+          msg.classList.add("text-green-600");
+          msg.textContent = "✅ Registration successful! Redirecting...";
+
+          setTimeout(() => {
+            window.location.href = "/usersUi.html";
+          }, 1200);
+        } catch (err) {
+          msg.textContent = "Server error. Try again.";
+          console.error(err);
+        }
+      });
+    </script>
+  </body>
 </html>

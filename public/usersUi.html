@@ -1,144 +1,139 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Users Table</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Users Table</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100">
+    <!-- ✅ NAVBAR -->
+    <div id="navbar"></div>
 
-  <!-- ✅ NAVBAR -->
-  <div id="navbar"></div>
+    <div class="max-w-6xl mx-auto py-10 px-4">
+      <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
+        Users Table
+      </h1>
 
-  <div class="max-w-6xl mx-auto py-10 px-4">
+      <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
+        <table class="min-w-full text-left text-gray-700">
+          <thead>
+            <tr class="border-b">
+              <th class="p-3">Image</th>
+              <th class="p-3">Full Name</th>
+              <th class="p-3">Nickname</th>
+              <th class="p-3">Email</th>
+              <th class="p-3">Phone</th>
+              <th class="p-3">Address</th>
+              <th class="p-3">Birthday</th>
+            </tr>
+          </thead>
 
-    <h1 class="text-3xl font-bold text-center text-gray-800 mb-6">
-      Users Table
-    </h1>
+          <tbody id="user-table"></tbody>
+        </table>
+      </div>
 
-    <div class="overflow-x-auto bg-white shadow rounded-xl p-4">
-      <table class="min-w-full text-left text-gray-700">
-        <thead>
-          <tr class="border-b">
-            <th class="p-3">Image</th>
-            <th class="p-3">Full Name</th>
-            <th class="p-3">Nickname</th>
-            <th class="p-3">Email</th>
-            <th class="p-3">Phone</th>
-            <th class="p-3">Address</th>
-            <th class="p-3">Birthday</th>
-          </tr>
-        </thead>
-
-        <tbody id="user-table"></tbody>
-      </table>
+      <div id="pagination" class="flex justify-center mt-6 gap-2"></div>
     </div>
 
-    <div id="pagination" class="flex justify-center mt-6 gap-2"></div>
+    <!-- ✅ FOOTER -->
+    <div id="footer"></div>
 
-  </div>
+    <script>
+      let allUsers = [];
+      let currentPage = 1;
+      const rowsPerPage = 30;
 
-  <!-- ✅ FOOTER -->
-  <div id="footer"></div>
+      function renderTable() {
+        const tbody = document.getElementById("user-table");
+        tbody.innerHTML = "";
 
+        const start = (currentPage - 1) * rowsPerPage;
+        const end = start + rowsPerPage;
 
-<script>
-  let allUsers = [];
-  let currentPage = 1;
-  const rowsPerPage = 30;
+        const pageItems = allUsers.slice(start, end);
 
-  function renderTable() {
-    const tbody = document.getElementById("user-table");
-    tbody.innerHTML = "";
-
-    const start = (currentPage - 1) * rowsPerPage;
-    const end = start + rowsPerPage;
-
-    const pageItems = allUsers.slice(start, end);
-
-    pageItems.forEach(u => {
-      const row = `
+        pageItems.forEach((u) => {
+          const row = `
         <tr class="border-b hover:bg-gray-50">
           <td class="p-3">
-            <img 
-              src="${u.image}" 
-              class="w-12 h-12 rounded-lg object-cover"
-            />
+           <img
+  src="${u.image ? u.image : "https://source.unsplash.com/100x100/?profile"}"
+  class="w-12 h-12 rounded-lg object-cover"
+  onerror="this.onerror=null; this.src='https://source.unsplash.com/100x100/?profile';"
+/>
           </td>
           <td class="p-3 font-semibold">${u.full_name}</td>
           <td class="p-3">${u.nickname}</td>
           <td class="p-3">${u.email}</td>
           <td class="p-3">${u.phone}</td>
           <td class="p-3">${u.address}</td>
-          <td class="p-3">${new Date(u.birthday).toLocaleDateString()}</td>
+          <td class="p-3">${
+            u.birthday ? new Date(u.birthday).toLocaleDateString() : ""
+          }</td>
         </tr>
       `;
-      tbody.innerHTML += row;
-    });
+          tbody.innerHTML += row;
+        });
 
-    renderPagination();
-  }
+        renderPagination();
+      }
 
-  function renderPagination() {
-    const totalPages = Math.ceil(allUsers.length / rowsPerPage);
-    const pagination = document.getElementById("pagination");
-    pagination.innerHTML = "";
+      function renderPagination() {
+        const totalPages = Math.ceil(allUsers.length / rowsPerPage);
+        const pagination = document.getElementById("pagination");
+        pagination.innerHTML = "";
 
-    for (let i = 1; i <= totalPages; i++) {
-      pagination.innerHTML += `
+        for (let i = 1; i <= totalPages; i++) {
+          pagination.innerHTML += `
         <button 
           onclick="goToPage(${i})"
           class="px-4 py-2 rounded-lg border ${
-            i === currentPage 
-            ? 'bg-blue-600 text-white border-blue-600' 
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-200'
+            i === currentPage
+              ? "bg-blue-600 text-white border-blue-600"
+              : "bg-white text-gray-700 border-gray-300 hover:bg-gray-200"
           }"
         >
           ${i}
         </button>
       `;
-    }
-  }
+        }
+      }
 
-  function goToPage(page) {
-    currentPage = page;
-    renderTable();
-  }
+      function goToPage(page) {
+        currentPage = page;
+        renderTable();
+      }
 
-  async function loadUsers() {
-    try {
-      const res = await fetch("http://localhost:3000/users");
-      const data = await res.json();
+      async function loadUsers() {
+        try {
+          const res = await fetch("http://localhost:3000/users");
+          const data = await res.json();
 
-      allUsers = data;
-      renderTable();
+          allUsers = data;
+          renderTable();
+        } catch (err) {
+          console.error("Error fetch users:", err);
+        }
+      }
 
-    } catch (err) {
-      console.error("Error fetch users:", err);
-    }
-  }
+      loadUsers();
+    </script>
 
-  loadUsers();
+    <!-- ✅ LOAD NAVBAR + FOOTER -->
+    <script>
+      async function loadPartial(id, file) {
+        const res = await fetch(file);
+        const html = await res.text();
+        document.getElementById(id).innerHTML = html;
+      }
 
-  
-</script>
+      loadPartial("navbar", "/partials/navbar.html").then(() => {
+        const s = document.createElement("script");
+        s.src = "/js/navbar.js";
+        document.body.appendChild(s);
+      });
 
-<!-- ✅ LOAD NAVBAR + FOOTER -->
-<script>
-  async function loadPartial(id, file) {
-    const res = await fetch(file);
-    const html = await res.text();
-    document.getElementById(id).innerHTML = html;
-  }
-
-  loadPartial("navbar", "/partials/navbar.html").then(() => {
-  const s = document.createElement("script");
-  s.src = "/js/navbar.js";
-  document.body.appendChild(s);
-});
-
-  loadPartial("footer", "/partials/footer.html");
-</script>
-
-</body>
+      loadPartial("footer", "/partials/footer.html");
+    </script>
+  </body>
 </html>
