@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Product Details</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+  <body class="bg-gray-100">
+    <div id="navbar"></div>
+    <div class="min-h-screen">
+      <div class="max-w-xl mx-auto mt-10 bg-white shadow-lg rounded-xl p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">
+          Product Details
+        </h1>
+
+        <div id="product-details" class="space-y-4 text-gray-700">
+          <p>Loading...</p>
+        </div>
+
+        <div class="flex justify-between mt-6">
+          <button
+            onclick="history.back()"
+            class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+          >
+            Back
+          </button>
+
+          <button
+            id="edit-btn"
+            class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          >
+            Edit Product
+          </button>
+        </div>
+      </div>
+    </div>
+    <div id="footer"></div>
+
+    <script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const productId = urlParams.get("id");
+
+  async function loadProductDetails() {
+    try {
+      const token = localStorage.getItem("accessToken");
+
+      const res = await fetch(`http://localhost:3000/products/${productId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      if (!res.ok) {
+        document.getElementById("product-details").innerHTML =
+          "<p class='text-red-600'>Unauthorized / Product not found.</p>";
+        return;
+      }
+
+      // ✅ FIX: AMBIL DATA DULU!
+      const product = await res.json();
+
+      const container = document.getElementById("product-details");
+
+      // Ambil gambar
+      const image =
+        product.media && product.media.length > 0
+          ? product.media.find((m) => m.type === "image")?.url
+          : "https://source.unsplash.com/300x200/?product";
+
+      container.innerHTML = `
+        <div class="flex justify-center mb-4">
+          <img src="${image}"
+            class="w-1/2 h-1/2 rounded-xl object-cover border"
+            onerror="this.src='https://source.unsplash.com/300x200/?product';" />
+        </div>
+
+        <p><strong>Name:</strong> ${product.name}</p>
+        <p><strong>Brand:</strong> ${product.brand || "-"}</p>
+        <p><strong>Category:</strong> ${product.category || "-"}</p>
+        <p><strong>Price:</strong> Rp ${Number(product.price).toLocaleString("id-ID")}</p>
+        <p><strong>Rating:</strong> ⭐ ${product.rating}</p>
+        <p><strong>Description:</strong> ${product.description || "-"}</p>
+      `;
+
+      // Edit button
+      document.getElementById("edit-btn").onclick = () => {
+        window.location.href = `/editProduct.html?id=${productId}`;
+      };
+    } catch (err) {
+      console.error("DETAIL PRODUCT ERROR:", err);
+      document.getElementById("product-details").innerHTML =
+        "<p class='text-red-600'>Failed to load product data.</p>";
+    }
+  }
+
+  loadProductDetails();
+</script>
+
+    <script>
+      async function loadPartial(id, file) {
+        const res = await fetch(file);
+        const html = await res.text();
+        document.getElementById(id).innerHTML = html;
+      }
+
+      loadPartial("navbar", "/partials/navbar.html").then(() => {
+        const s = document.createElement("script");
+        s.src = "/js/navbar.js";
+        document.body.appendChild(s);
+      });
+      loadPartial("footer", "/partials/footer.html");
+    </script>
+  </body>
+</html>

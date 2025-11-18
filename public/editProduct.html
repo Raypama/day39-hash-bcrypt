@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Edit Product</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-gray-100">
+    <div id="navbar"></div>
+
+    <div class="min-h-screen w-full flex px-6 justify-center items-center">
+      <div class="mx-auto w-full bg-white p-6 rounded-lg shadow">
+        <h1 class="text-2xl font-bold mb-4 text-center">Edit Product</h1>
+
+        <form id="editForm" class="flex gap-2 w-full">
+          <!-- LEFT -->
+          <div class="w-1/2 space-y-3">
+            <div>
+              <label>Name</label>
+              <input id="name" class="border p-2 w-full" required />
+            </div>
+
+            <div>
+              <label>Brand</label>
+              <input id="brand" class="border p-2 w-full" required />
+            </div>
+
+            <div>
+              <label>Category</label>
+              <input id="category" class="border p-2 w-full" required />
+            </div>
+
+            <div>
+              <label>Price</label>
+              <input
+                id="price"
+                type="number"
+                class="border p-2 w-full"
+                required
+              />
+            </div>
+
+            <div>
+              <label>Stock</label>
+              <input
+                id="stock"
+                type="number"
+                class="border p-2 w-full"
+                required
+              />
+            </div>
+          </div>
+
+          <!-- RIGHT -->
+          <div class="w-1/2 space-y-3">
+            <div>
+              <label>Rating (optional)</label>
+              <input
+                id="rating"
+                type="number"
+                min="0"
+                max="5"
+                step="0.1"
+                class="border p-2 w-full"
+              />
+            </div>
+
+            <div>
+              <label>Description (optional)</label>
+              <textarea
+                id="description"
+                class="border p-2 w-full h-24"
+              ></textarea>
+            </div>
+
+            <div>
+              <label>Media (JSON Array)</label>
+              <textarea
+                id="media"
+                class="border p-2 w-full h-24"
+                placeholder='Contoh: [{"type":"image","url":"..."}]'
+              ></textarea>
+            </div>
+
+            <p id="msg" class="text-red-600"></p>
+
+            <div class="w-full flex justify-center items-center">
+              <button
+                class="mt-2 bg-yellow-500 text-white w-1/2 px-4 py-2 rounded-lg"
+              >
+                Update Product
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <div id="footer" class="mt-10"></div>
+
+    <!-- LOAD NAVBAR & FOOTER -->
+    <script>
+      async function loadPartial(id, file) {
+        const res = await fetch(file);
+        const html = await res.text();
+        document.getElementById(id).innerHTML = html;
+      }
+
+      loadPartial("navbar", "/partials/navbar.html");
+      loadPartial("footer", "/partials/footer.html");
+    </script>
+
+    <!-- ============================
+         EDIT PRODUCT SCRIPT
+    ============================= -->
+    <script>
+      const API = "http://localhost:3000";
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const productId = urlParams.get("id");
+
+      const msg = document.getElementById("msg");
+      let originalProduct = null;
+
+      // ============================
+      // 1️⃣ LOAD PRODUCT (WITH TOKEN)
+      // ============================
+      async function loadProduct() {
+        try {
+          const token = localStorage.getItem("accessToken");
+
+          const res = await fetch(`${API}/products/${productId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          });
+
+          if (!res.ok) {
+            msg.textContent = "Unauthorized! Please login again.";
+            return;
+          }
+
+          const product = await res.json();
+          originalProduct = product;
+
+          // isi otomatis ke form
+          document.getElementById("name").value = product.name;
+          document.getElementById("brand").value = product.brand;
+          document.getElementById("category").value = product.category;
+          document.getElementById("price").value = product.price;
+          document.getElementById("stock").value = product.stock;
+
+          document.getElementById("rating").value = product.rating ?? "";
+          document.getElementById("description").value =
+            product.description ?? "";
+
+          document.getElementById("media").value = product.media
+            ? JSON.stringify(product.media, null, 2)
+            : "";
+        } catch (err) {
+          console.error("Load product error:", err);
+          msg.textContent = "Error loading product!";
+        }
+      }
+
+      loadProduct();
+
+      // ============================
+      // 2️⃣ SUBMIT UPDATE (WITH TOKEN)
+      // ============================
+      document
+        .getElementById("editForm")
+        .addEventListener("submit", async (e) => {
+          e.preventDefault();
+
+          const ratingInput = document.getElementById("rating").value.trim();
+          const descriptionInput = document
+            .getElementById("description")
+            .value.trim();
+          const mediaInput = document.getElementById("media").value.trim();
+
+          // Validasi JSON
+          if (mediaInput) {
+            try {
+              JSON.parse(mediaInput);
+            } catch (err) {
+              msg.textContent = "Media must be valid JSON!";
+              return;
+            }
+          }
+
+          // Body update
+          const body = {
+            name: document.getElementById("name").value || originalProduct.name,
+            brand:
+              document.getElementById("brand").value || originalProduct.brand,
+            category:
+              document.getElementById("category").value ||
+              originalProduct.category,
+            price:
+              Number(document.getElementById("price").value) ||
+              originalProduct.price,
+            stock:
+              Number(document.getElementById("stock").value) ||
+              originalProduct.stock,
+
+            // optional fields
+            rating: ratingInput !== "" ? ratingInput : originalProduct.rating,
+            description:
+              descriptionInput !== ""
+                ? descriptionInput
+                : originalProduct.description,
+            media: mediaInput !== "" ? mediaInput : originalProduct.media,
+          };
+
+          try {
+            const token = localStorage.getItem("accessToken");
+
+            const res = await fetch(`${API}/products/${productId}`, {
+              method: "PUT",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify(body),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              msg.textContent = data.error || "Update failed!";
+              return;
+            }
+
+            msg.classList.remove("text-red-600");
+            msg.classList.add("text-green-600");
+            msg.textContent = "✔ Product updated! Redirecting...";
+
+            setTimeout(() => {
+              window.location.href = "/productsUi.html";
+            }, 1200);
+          } catch (error) {
+            console.error("Update error:", error);
+            msg.textContent = "Server error!";
+          }
+        });
+    </script>
+  </body>
+</html>

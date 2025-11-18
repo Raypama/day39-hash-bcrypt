@@ -17,7 +17,7 @@
 
       if (!res.ok) return false;
       console.log("function attemptRefresh sukses!!!!");
-      
+
       const data = await res.json();
       localStorage.setItem("accessToken", data.accessToken);
       return true;
@@ -38,7 +38,7 @@
       const res = await fetch(`${API}/auth/check`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-console.log("auth/check auth bearer token pertama sukses.");
+      console.log("auth/check auth bearer token pertama sukses.");
 
       if (res.ok) return true;
 
@@ -51,7 +51,7 @@ console.log("auth/check auth bearer token pertama sukses.");
         headers: { Authorization: `Bearer ${newToken}` },
       });
       console.log("proses refres access token berhasil");
-      
+
       return res2.ok;
     } catch (err) {
       console.error("Check login error:", err);
@@ -95,7 +95,7 @@ console.log("auth/check auth bearer token pertama sukses.");
         console.error("Logout request failed:", err);
       } finally {
         localStorage.clear();
-        window.location.href = "/login.html";
+        window.location.href = "/usersUi.html";
       }
     });
   }

@@ -1,6 +1,5 @@
 const pool = require("../config/db");
 
-
 module.exports = {
   getAll: async (req, res) => {
     try {
@@ -192,23 +191,25 @@ module.exports = {
     }
   },
   remove: async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(
-      "DELETE FROM products WHERE id = $1 RETURNING *",
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Product not found" });
+    try {
+      const { id } = req.params;
+      if (isNaN(id)) {
+      return res.status(400).json({ message: "Invalid product ID" });
     }
 
-    res.json({ message: "Product deleted" });
-  } catch (error) {
-    console.error("ERROR delete product:", error.message);
-    res.status(500).json({ error: "Internal server error" });
-  }
-}
+      const result = await pool.query(
+        "DELETE FROM products WHERE id = $1 RETURNING *",
+        [id]
+      );
 
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: "Product not found" });
+      }
+
+      res.json({ message: "Product deleted" });
+    } catch (error) {
+      console.error("ERROR delete product:", error.message);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  },
 };
